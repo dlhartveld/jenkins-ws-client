@@ -2,6 +2,7 @@ package nl.tudelft.jenkins.tests.integration;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -12,6 +13,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import nl.tudelft.jenkins.auth.User;
 import nl.tudelft.jenkins.client.JenkinsClient;
@@ -45,6 +48,8 @@ public abstract class AbstractJenkinsIntegrationTestBase {
 
 	private JenkinsClient client;
 
+	private ExecutorService executor;
+
 	@BeforeClass
 	public static void loadResources() throws Exception {
 		defaultJenkinsUrl = new URL(jenkinsUrl());
@@ -68,7 +73,9 @@ public abstract class AbstractJenkinsIntegrationTestBase {
 	public void setUp() throws Exception {
 		LOG.debug("Creating Guice injector for URL: {} == {}", defaultJenkinsUrl, defaultJenkinsUrl.toExternalForm());
 
-		injector = Guice.createInjector(new JenkinsWsClientGuiceModule(defaultJenkinsUrl, defaultJenkinsUser, defaultJenkinsPass));
+		executor = Executors.newSingleThreadExecutor();
+
+		injector = Guice.createInjector(new JenkinsWsClientGuiceModule(defaultJenkinsUrl, defaultJenkinsUser, defaultJenkinsPass, executor));
 
 		client = injector.getInstance(JenkinsClient.class);
 	}
@@ -88,6 +95,8 @@ public abstract class AbstractJenkinsIntegrationTestBase {
 
 		client.close();
 
+		executor.shutdown();
+		executor.awaitTermination(10, SECONDS);
 	}
 
 	public final String getJobName() {

@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
 
 import nl.tudelft.jenkins.client.HttpRestResponse.Header;
 
@@ -26,6 +27,7 @@ public class JenkinsClientImplTest {
 	@Mock private HttpRestClient restClient;
 	@Mock private HttpRestResponse response;
 	@Mock private Header header;
+	@Mock private ExecutorService executor;
 
 	@Before
 	public void setUp() throws MalformedURLException {
@@ -36,7 +38,7 @@ public class JenkinsClientImplTest {
 		when(response.getHeader("X-Jenkins")).thenReturn(header);
 		when(header.getValue()).thenReturn(JenkinsVersion.SUPPORTED_JENKINS_VERSION);
 
-		client = new JenkinsClientImpl(restClient, endpoint);
+		client = new JenkinsClientImpl(restClient, endpoint, executor);
 	}
 
 	@Test

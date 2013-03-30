@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import nl.tudelft.jenkins.client.exceptions.NoJenkinsServerException;
 
@@ -25,12 +27,16 @@ public class ClientServerValidationIntegrationTest {
 	private HttpRestClient restClient;
 	private JenkinsClient jenkinsClient;
 
+	private ExecutorService executor;
+
 	@Before
 	public void setUp() {
 		HttpClient httpClient = new DefaultHttpClient();
 		HttpContext httpContext = new BasicHttpContext();
 		HttpMethodFactory methodFactory = new HttpMethodFactory();
 		restClient = new HttpRestClientImpl(httpClient, httpContext, methodFactory);
+
+		executor = Executors.newSingleThreadExecutor();
 	}
 
 	@After
@@ -52,7 +58,7 @@ public class ClientServerValidationIntegrationTest {
 
 		boolean exceptionWasThrown = false;
 		try {
-			jenkinsClient = new JenkinsClientImpl(restClient, new URL(url));
+			jenkinsClient = new JenkinsClientImpl(restClient, new URL(url), executor);
 		} catch (NoJenkinsServerException e) {
 			exceptionWasThrown = true;
 		}
@@ -65,7 +71,7 @@ public class ClientServerValidationIntegrationTest {
 
 		LOG.trace("Testing that {} is a valid Jenkins server (anonymous check)...", url);
 
-		jenkinsClient = new JenkinsClientImpl(restClient, new URL(url));
+		jenkinsClient = new JenkinsClientImpl(restClient, new URL(url), executor);
 	}
 
 }

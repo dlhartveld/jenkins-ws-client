@@ -8,6 +8,9 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import javax.inject.Inject;
 
@@ -36,13 +39,17 @@ class JenkinsClientImpl implements JenkinsClient {
 	private final URL endpoint;
 	private final HttpRestClient client;
 
+	private final ExecutorService executor;
+
 	@Inject
-	JenkinsClientImpl(HttpRestClient client, @JenkinsUrl URL endpoint) {
+	JenkinsClientImpl(HttpRestClient client, @JenkinsUrl URL endpoint, ExecutorService executor) {
 
 		LOG.trace("Initializing Jenkins client for endpoint: {}", endpoint.toExternalForm());
 
 		this.endpoint = checkNotNull(endpoint, "endpoint");
 		this.client = checkNotNull(client, "client");
+
+		this.executor = checkNotNull(executor, "executor");
 
 		// validateServerOnEndpoint();
 	}
@@ -106,6 +113,22 @@ class JenkinsClientImpl implements JenkinsClient {
 	}
 
 	@Override
+	public Future<Job> createJobAsync(final String name, final String scmUrl, final List<User> users) {
+		LOG.trace("Creating job {} @ {} (asynchronously) ...", name, scmUrl);
+
+		checkArgument(isNotEmpty(name), "name must be non-empty");
+		checkArgument(isNotEmpty(scmUrl), "scmUrl must be non-empty");
+
+		return executor.submit(new Callable<Job>() {
+			@Override
+			public Job call() throws Exception {
+				return createJob(name, scmUrl, users);
+			}
+		});
+
+	}
+
+	@Override
 	public Job retrieveJob(final String name) {
 
 		LOG.trace("Retrieving job {} ...", name);
@@ -156,8 +179,9 @@ class JenkinsClientImpl implements JenkinsClient {
 
 	@Override
 	public void deleteJob(final Job job) {
-
 		LOG.trace("Deleting job {} ...", job);
+
+		checkNotNull(job, "job");
 
 		final String url = endpoint.toExternalForm() + "/job/" + job.getName() + "/doDelete";
 
@@ -171,6 +195,21 @@ class JenkinsClientImpl implements JenkinsClient {
 			throw new JenkinsException(message);
 		}
 
+	}
+
+	@Override
+	public Future<Void> deleteJobAsync(final Job job) {
+		LOG.trace("Deleting job {} ...", job);
+
+		checkNotNull(job, "job");
+
+		return executor.submit(new Callable<Void>() {
+			@Override
+			public Void call() throws Exception {
+				deleteJob(job);
+				return null;
+			}
+		});
 	}
 
 	private String urlForJob(final String name) {

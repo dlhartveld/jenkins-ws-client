@@ -2,6 +2,7 @@ package nl.tudelft.jenkins.client;
 
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import nl.tudelft.jenkins.auth.User;
 import nl.tudelft.jenkins.client.exceptions.NoSuchJobException;
@@ -34,6 +35,8 @@ public interface JenkinsClient extends AutoCloseable {
 	 */
 	Job createJob(String name, String scmUrl, List<User> owners);
 
+	Future<Job> createJobAsync(String string, String jobScmUrl, List<User> owners);
+
 	/**
 	 * Retrieve the configuration of an existing build job.
 	 * 
@@ -59,6 +62,8 @@ public interface JenkinsClient extends AutoCloseable {
 	 * @param job The {@link Job} instance representing the job.
 	 */
 	void deleteJob(Job job);
+
+	Future<Void> deleteJobAsync(Job actualJob);
 
 	/**
 	 * Create a new user in the Jenkins system.

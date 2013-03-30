@@ -121,7 +121,7 @@ class HttpRestResponseImpl implements HttpRestResponse {
 		for (org.apache.http.Header header : response.getAllHeaders()) {
 			String name = header.getName();
 			String value = header.getValue();
-			LOG.trace("Header: {}: {}", name, value);
+			// LOG.trace("Header: {}: {}", name, value);
 
 			if (headers.containsKey(name)) {
 				// The spec (rfc X) says that headers can be duplicated. So, handle

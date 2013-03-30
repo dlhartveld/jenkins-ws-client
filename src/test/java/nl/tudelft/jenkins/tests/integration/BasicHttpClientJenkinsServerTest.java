@@ -1,10 +1,13 @@
 package nl.tudelft.jenkins.tests.integration;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import nl.tudelft.jenkins.client.JenkinsClient;
 import nl.tudelft.jenkins.client.JenkinsClientFactory;
@@ -30,16 +33,23 @@ public class BasicHttpClientJenkinsServerTest extends AbstractJenkinsIntegration
 	private static final String JENKINS_USER = getUserName();
 	private static final String JENKINS_PASS = getPassword();
 
+	private ExecutorService executor;
+
 	@Override
 	@Before
 	public void setUp() {
 		// Ignore creation of injector, etc. in superclass.
+
+		executor = Executors.newSingleThreadExecutor();
 	}
 
 	@Override
 	@After
-	public void tearDown() {
+	public void tearDown() throws Exception {
 		// Ignore superclass.
+
+		executor.shutdown();
+		executor.awaitTermination(10, SECONDS);
 	}
 
 	@Test
@@ -80,7 +90,7 @@ public class BasicHttpClientJenkinsServerTest extends AbstractJenkinsIntegration
 	public void testThatJenkinsClientAcceptsJenkinsServiceOnConfiguredHost() throws Exception {
 
 		LOG.info("Testing that JenkinsClientFactory creates JenkinsClient for URL: {}", JENKINS_URL);
-		JenkinsClientFactory factory = new JenkinsClientFactory(JENKINS_URL, JENKINS_USER, JENKINS_PASS);
+		JenkinsClientFactory factory = new JenkinsClientFactory(JENKINS_URL, JENKINS_USER, JENKINS_PASS, executor);
 		JenkinsClient client = factory.getJenkinsClient();
 
 		LOG.info("Tested succesfully. Closing client...");

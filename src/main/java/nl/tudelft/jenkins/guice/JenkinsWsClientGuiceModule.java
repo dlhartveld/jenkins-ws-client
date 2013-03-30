@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -33,7 +34,9 @@ public class JenkinsWsClientGuiceModule extends AbstractModule {
 	private final HttpHost jenkinsHost;
 	private final Credentials credentials;
 
-	public JenkinsWsClientGuiceModule(URL jenkinsUrl, final String username, final String password) {
+	private final ExecutorService executor;
+
+	public JenkinsWsClientGuiceModule(URL jenkinsUrl, final String username, final String password, final ExecutorService executor) {
 
 		LOG.trace("Creating new Jenkins WS Client Guice module for: {}@{} ...", username, jenkinsUrl);
 
@@ -44,6 +47,8 @@ public class JenkinsWsClientGuiceModule extends AbstractModule {
 
 		int port = endpoint.getPort() == -1 ? 80 : endpoint.getPort();
 		jenkinsHost = new HttpHost(endpoint.getHost(), port);
+
+		this.executor = checkNotNull(executor, "executor");
 	}
 
 	@Override
@@ -68,6 +73,11 @@ public class JenkinsWsClientGuiceModule extends AbstractModule {
 		httpContext.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
 		return httpContext;
+	}
+
+	@Provides
+	public ExecutorService getExecutorService() {
+		return executor;
 	}
 
 }

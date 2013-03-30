@@ -26,6 +26,7 @@
 		<version.google.guice>3.0</version.google.guice>
 		<version.jdom>2.0.2</version.jdom>
 		<version.jaxen>1.1.4</version.jaxen>
+		<version.rxjava>0.5.3</version.rxjava>
 
 		<version.hamcrest>1.3</version.hamcrest>
 		<version.junit>4.11</version.junit>
@@ -127,6 +128,12 @@
 			<groupId>jaxen</groupId>
 			<artifactId>jaxen</artifactId>
 			<version>${version.jaxen}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.netflix.rxjava</groupId>
+			<artifactId>rxjava-core</artifactId>
+			<version>${version.rxjava}</version>
 		</dependency>
 
 		<dependency>
